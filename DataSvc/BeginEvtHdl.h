@@ -17,7 +17,6 @@ class BeginEvtHdl : public IIncidentHandler
 
     private :
 
-        bool              m_1stCall;
         Task*             m_par;
         DataSvc*          m_dataSvc;
         RawDataInputSvc*  m_iSvc;
