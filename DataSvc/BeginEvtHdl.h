@@ -5,8 +5,7 @@
 
 class Task;
 class DataSvc;
-class InputSvc;
-//class RootInputSvc;
+class RawDataInputSvc;
 
 class BeginEvtHdl : public IIncidentHandler
 {
@@ -15,15 +14,13 @@ class BeginEvtHdl : public IIncidentHandler
         BeginEvtHdl(Task* par);
 
         bool handle(Incident& incident);
-	std::string objName(){return m_name;}
 
     private :
 
         bool              m_1stCall;
         Task*             m_par;
         DataSvc*          m_dataSvc;
-        InputSvc*         m_iSvc;
-	const std::string m_name="BeginEvtHdl";
+        RawDataInputSvc*  m_iSvc;
 };
 
 #endif
