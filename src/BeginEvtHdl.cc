@@ -1,6 +1,6 @@
 #include "DataSvc/BeginEvtHdl.h"
 #include "DataSvc/DataSvc.h"
-#include "DataSvc/InputSvc.h"
+#include "DataSvc/RawDataInputSvc.h"
 #include "SniperKernel/Incident.h"
 #include "SniperKernel/SniperPtr.h"
 #include "SniperKernel/SniperDataPtr.h"
@@ -16,18 +16,11 @@ BeginEvtHdl::BeginEvtHdl(Task* par)
     : m_1stCall(true),
       m_par(par)
 {
-    //SniperPtr<RootInputSvc> iSvc(m_par, "InputSvc");
-    //if ( iSvc.invalid() ) {
-    //    LogFatal << "cann't find InputSvc for "
-    //             << m_par->scope() << m_par->objName() << std::endl;
-    //    throw SniperException("InputSvc is invalid");
-    //}
-    //m_iSvc = iSvc.data();
 
-    //SniperPtr<InputSvc> pISvc("InputSvc");
-    //if ( pISvc.invalid()) {
-    //        throw SniperException("InputSvc is invalid!");
-    //}
+    SniperPtr<RawDataInputSvc> pISvc("RawDataInputSvc");
+    if ( pISvc.invalid()) {
+            throw SniperException("RawData inputSvc is invalid!");
+    }
 
 
 

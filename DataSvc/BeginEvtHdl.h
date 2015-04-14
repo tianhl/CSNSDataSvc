@@ -15,6 +15,7 @@ class BeginEvtHdl : public IIncidentHandler
         BeginEvtHdl(Task* par);
 
         bool handle(Incident& incident);
+	std::string objName(){return m_name;}
 
     private :
 
@@ -22,6 +23,7 @@ class BeginEvtHdl : public IIncidentHandler
         Task*             m_par;
         DataSvc*          m_dataSvc;
         InputSvc*         m_iSvc;
+	const std::string m_name="BeginEvtHdl";
 };
 
 #endif
