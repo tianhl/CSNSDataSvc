@@ -42,7 +42,7 @@ ELSE()
 ENDIF()
 
 # Search Source Files
-include_directories(${PROJECT_SOURCE_DIR}/../Data)
+include_directories(${PROJECT_SOURCE_DIR}/DataSvc)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src)
 file(GLOB_RECURSE CPPLIB_SRC_LIST "src/*.cc")
