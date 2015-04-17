@@ -7,7 +7,7 @@
 #include "SniperKernel/SvcBase.h"
 
 class DataSvc;
-class InputStream;
+class DataProvideSvc;
 
 class RawDataInputSvc : public SvcBase
 {
@@ -28,7 +28,7 @@ class RawDataInputSvc : public SvcBase
 
       DataSvc*          m_dataSvc;
       std::string       m_inputFile;
-      InputStream*      m_iStream;
+      DataProvideSvc*   m_iStream;
 
       uint64_t*         m_dataBuff;
       uint32_t          m_offset;

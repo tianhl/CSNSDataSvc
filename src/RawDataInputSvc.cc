@@ -1,7 +1,7 @@
 #include "DataSvc/RawDataInputSvc.h"
 #include "DataSvc/DataSvc.h"
 #include "DataSvc/BeginEvtHdl.h"
-#include "DataSvc/InputStream.h"
+#include "DataSvc/DataProvideSvc.h"
 #include "DataSvc/DecodeRawData.h"
 
 #include "SniperKernel/Incident.h"
@@ -54,7 +54,7 @@ bool RawDataInputSvc::initialize()
 
 	m_dataBuff = new uint64_t[m_buffsize];
 
-	m_iStream = new InputStream();
+	m_iStream = new DataProvideSvc();
 	m_iStream->open(m_inputFile);
 
 	return true;

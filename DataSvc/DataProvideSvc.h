@@ -8,10 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-class InputStream{
+class DataProvideSvc{
 	public:
-		InputStream();
-		virtual ~InputStream();
+		DataProvideSvc();
+		virtual ~DataProvideSvc();
 
 		void open(const std::string& name);
 		void close();
