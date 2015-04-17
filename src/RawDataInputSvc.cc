@@ -26,10 +26,14 @@
 DECLARE_SERVICE(RawDataInputSvc);
 
 RawDataInputSvc::RawDataInputSvc(const std::string& name)
-    : SvcBase(name)
+    : SvcBase(name) 
 {
 	declProp("InputFile", m_inputFile);
 	declProp("BuffSize",  m_buffsize);
+
+	m_isLastSegment = false;
+	m_offset = 0;
+	m_currbuffsize = 0;
 }
 
 RawDataInputSvc::~RawDataInputSvc()
@@ -51,15 +55,11 @@ bool RawDataInputSvc::initialize()
 	LogInfo << "InputSvc gets " << m_dataSvc->objName() << std::endl;
 
 
-
 	std::cout << "Input File: " << m_inputFile << std::endl;
-	//loadBinaryFile(m_inputFile[0]);
+	std::cout << "Buff  Size: " << m_buffsize << std::endl;
 
 	m_filestream.open(m_inputFile.c_str(), std::ios::binary);
-	m_buffsize = 100;
 	m_dataBuff = new uint64_t[m_buffsize];
-	m_isLastSegment = false;
-	m_currbuffsize = nextSegment();
 
 	return true;
 }
@@ -82,34 +82,25 @@ uint64_t* RawDataInputSvc::read64bits(){
 
 bool RawDataInputSvc::next()
 {
-	//LogInfo << "Next Pulse" << std::endl;
-	uint64_t *ReadRawData;// = new uint8_t[8]; 
+	uint64_t *ReadRawData;
 	time_t second;
 	uint32_t type, module, subsecond;
-	//std::cout << "m_offset " << m_offset << std::endl;
 
 	ReadRawData = read64bits();
 	if(((*ReadRawData)>>56)==0x0)  {
-		//std::cout << " BeginOfPulse" << std::endl;
 		decodePulseHeader(ReadRawData, &type, &module, &subsecond);
 		ReadRawData = read64bits();
 		decodePulseTime(ReadRawData, &second);
-		//std::cout << " Header: type " << type << " module  " << module << " subsecond " << subsecond << std::endl;
-		//std::cout << " Time: second " << second  <<" "<< ctime((time_t*)&second)    <<  std::endl; 
 	}
 
 	while(true){
 		ReadRawData = read64bits();
 		if (((*ReadRawData)>>56) == 0xFF)   {
-			//std::cout << " EndOfPulse" << std::endl; 
 			if(m_isLastSegment && (m_offset == m_currbuffsize)) return false;
 			break;
 		}
 		uint32_t psd, tof, qa, qb;
 		decodeEvent(ReadRawData, &psd, &tof, &qa, &qb);
-		//std::cout << "decode qa " << qa << " qb " << qb << std::endl;
-
-
 	}
 	return true;
 
@@ -119,14 +110,11 @@ bool RawDataInputSvc::next()
 
 size_t RawDataInputSvc::nextSegment()
 {
-	std::cout << "nextSegment() " << std::endl;
 	m_filestream.read((char*)m_dataBuff, sizeof(uint64_t)*m_buffsize);
 	m_offset = 0;
 
-	size_t size = m_filestream.gcount();
-	if(size < m_buffsize){
-		m_isLastSegment = true;
-	}
+	size_t size = m_filestream.gcount()/sizeof(uint64_t);
+	if(size < m_buffsize) m_isLastSegment = true;
 	return size;
 }
 
