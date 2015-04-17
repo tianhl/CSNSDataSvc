@@ -27,8 +27,7 @@ class RawDataInputSvc : public SvcBase
     private :
 
       DataSvc*          m_dataSvc;
-      std::string       m_inputFile;
-      DataProvideSvc*   m_iStream;
+      DataProvideSvc*   m_dataPvdSvc;
 
       uint64_t*         m_dataBuff;
       uint32_t          m_offset;

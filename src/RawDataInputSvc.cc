@@ -31,7 +31,6 @@ DECLARE_SERVICE(RawDataInputSvc);
 RawDataInputSvc::RawDataInputSvc(const std::string& name)
 : SvcBase(name) 
 {
-	declProp("InputFile", m_inputFile);
 	declProp("BuffSize",  m_buffsize);
 
 	m_isLastSegment = false;
@@ -48,14 +47,17 @@ bool RawDataInputSvc::initialize()
 
 	LogInfo << "InputSvc initialize " << std::endl;
 
-	SniperPtr<DataSvc> pSvc("DataSvc");
-	if ( pSvc.invalid()) throw SniperException("DataSvc is invalid!");
-	m_dataSvc = pSvc.data();
+	SniperPtr<DataSvc> pDSvc("DataSvc");
+	if ( pDSvc.invalid()) throw SniperException("DataSvc is invalid!");
+	m_dataSvc = pDSvc.data();
 
 	m_dataBuff = new uint64_t[m_buffsize];
 
-	m_iStream = new DataProvideSvc();
-	m_iStream->open(m_inputFile);
+	SniperPtr<DataProvideSvc> pPSvc("DataProvideSvc");
+	if ( pPSvc.invalid()) throw SniperException("DataProvideSvc is invalid!");
+	m_dataPvdSvc = pPSvc.data();
+
+	m_dataPvdSvc->open();
 
 	return true;
 }
@@ -64,8 +66,7 @@ bool RawDataInputSvc::initialize()
 
 bool RawDataInputSvc::finalize()
 {
-	m_iStream->close();
-	delete m_iStream;
+	m_dataPvdSvc->close();
 	return true;
 }
 
@@ -106,10 +107,10 @@ uint64_t* RawDataInputSvc::read64bits(){
 
 size_t RawDataInputSvc::nextSegment()
 {
-        m_iStream->read(m_dataBuff, m_buffsize);
+        m_dataPvdSvc->read(m_dataBuff, m_buffsize);
 	m_offset = 0;
 
-	size_t size = m_iStream->count();
+	size_t size = m_dataPvdSvc->count();
 	if(size < m_buffsize) m_isLastSegment = true;
 	return size;
 }

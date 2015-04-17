@@ -1,11 +1,38 @@
 #include "DataSvc/DataProvideSvc.h"
 
+#include "SniperKernel/Incident.h"
+#include "SniperKernel/SniperPtr.h"
+#include "SniperKernel/SniperDataPtr.h"
+#include "SniperKernel/SniperLog.h"
+#include "SniperKernel/SniperException.h"
+#include "SniperKernel/SvcFactory.h"
+#include "SniperKernel/Task.h"
 
-DataProvideSvc::DataProvideSvc(){
+
+DECLARE_SERVICE(DataProvideSvc);
+
+DataProvideSvc::DataProvideSvc(const std::string& name)
+	: SvcBase(name)
+{
+	declProp("InputFile", m_inputFile);
 }
 
 DataProvideSvc::~DataProvideSvc(){
 }
+
+bool DataProvideSvc::initialize(){
+	return true;
+}
+
+bool DataProvideSvc::finalize()
+{
+	return true;
+}
+
+void DataProvideSvc::open(){
+	open(m_inputFile);
+}
+
 
 void DataProvideSvc::open(const std::string& name){
 	m_filestream.open(name.c_str(), std::ios::binary);
