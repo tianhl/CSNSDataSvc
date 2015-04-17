@@ -28,6 +28,9 @@ class RawDataInputSvc : public SvcBase
       void decodeEvent(uint64_t *buff, uint32_t *psd, uint32_t *tof, uint32_t *qa, uint32_t *qb );
       uint64_t* read64bits();
 
+      bool isPulseHeader(uint64_t *buff);
+      bool isPulseTail(uint64_t *buff);
+
     private :
 
       DataSvc*          m_dataSvc;

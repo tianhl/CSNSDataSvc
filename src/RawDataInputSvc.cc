@@ -26,7 +26,7 @@
 DECLARE_SERVICE(RawDataInputSvc);
 
 RawDataInputSvc::RawDataInputSvc(const std::string& name)
-    : SvcBase(name) 
+: SvcBase(name) 
 {
 	declProp("InputFile", m_inputFile);
 	declProp("BuffSize",  m_buffsize);
@@ -46,17 +46,8 @@ bool RawDataInputSvc::initialize()
 	LogInfo << "InputSvc initialize " << std::endl;
 
 	SniperPtr<DataSvc> pSvc("DataSvc");
-	if ( pSvc.invalid()) {
-		throw SniperException("DataSvc is invalid!");
-	}
-
-
+	if ( pSvc.invalid()) throw SniperException("DataSvc is invalid!");
 	m_dataSvc = pSvc.data();
-	LogInfo << "InputSvc gets " << m_dataSvc->objName() << std::endl;
-
-
-	std::cout << "Input File: " << m_inputFile << std::endl;
-	std::cout << "Buff  Size: " << m_buffsize << std::endl;
 
 	m_filestream.open(m_inputFile.c_str(), std::ios::binary);
 	m_dataBuff = new uint64_t[m_buffsize];
@@ -73,11 +64,8 @@ bool RawDataInputSvc::finalize()
 }
 
 uint64_t* RawDataInputSvc::read64bits(){
-	uint64_t *ReadRawData; 
 	if (m_offset == m_currbuffsize) m_currbuffsize = nextSegment();
-	ReadRawData = (uint64_t*)(m_dataBuff+m_offset);
-	m_offset++;
-	return ReadRawData;
+	return (uint64_t*)(m_dataBuff+(m_offset++));
 }
 
 bool RawDataInputSvc::next()
@@ -87,15 +75,17 @@ bool RawDataInputSvc::next()
 	uint32_t type, module, subsecond;
 
 	ReadRawData = read64bits();
-	if(((*ReadRawData)>>56)==0x0)  {
+        //if(((*ReadRawData)>>56)==0x0)  {
+	if(isPulseHeader(ReadRawData))  {
 		decodePulseHeader(ReadRawData, &type, &module, &subsecond);
-		ReadRawData = read64bits();
-		decodePulseTime(ReadRawData, &second);
+		decodePulseTime(read64bits(), &second);
 	}
+	else throw SniperException("Pulse Header NOT FOUND!");
 
 	while(true){
 		ReadRawData = read64bits();
-		if (((*ReadRawData)>>56) == 0xFF)   {
+		//if (((*ReadRawData)>>56) == 0xFF)   {
+		if (isPulseTail(ReadRawData))   {
 			if(m_isLastSegment && (m_offset == m_currbuffsize)) return false;
 			break;
 		}
@@ -118,6 +108,13 @@ size_t RawDataInputSvc::nextSegment()
 	return size;
 }
 
+bool RawDataInputSvc::isPulseHeader(uint64_t *buff){
+	return 0x0  == (*buff>>56);
+}
+
+bool RawDataInputSvc::isPulseTail(uint64_t *buff){
+	return 0xFF == (*buff>>56);
+}
 
 void RawDataInputSvc::decodePulseHeader(uint64_t *buff, uint32_t *type, uint32_t *module, uint32_t *subsecond ){
 	*type      = (uint32_t) (((*buff)>>48)&0xFF);
