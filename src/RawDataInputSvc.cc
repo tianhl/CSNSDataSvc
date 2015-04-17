@@ -65,12 +65,8 @@ bool RawDataInputSvc::initialize()
 bool RawDataInputSvc::finalize()
 {
 	m_iStream->close();
+	delete m_iStream;
 	return true;
-}
-
-uint64_t* RawDataInputSvc::read64bits(){
-	if (m_offset == m_currbuffsize) m_currbuffsize = nextSegment();
-	return (uint64_t*)(m_dataBuff+(m_offset++));
 }
 
 bool RawDataInputSvc::next()
@@ -97,6 +93,15 @@ bool RawDataInputSvc::next()
 	}
 	return true;
 
+}
+
+//=====================================================================
+// Private Functions
+// ====================================================================
+
+uint64_t* RawDataInputSvc::read64bits(){
+	if (m_offset == m_currbuffsize) m_currbuffsize = nextSegment();
+	return (uint64_t*)(m_dataBuff+(m_offset++));
 }
 
 size_t RawDataInputSvc::nextSegment()
