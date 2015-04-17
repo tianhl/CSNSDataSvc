@@ -3,11 +3,11 @@
 
 #include <vector>
 #include <string>
-#include <fstream>
 
 #include "SniperKernel/SvcBase.h"
 
 class DataSvc;
+class InputStream;
 
 class RawDataInputSvc : public SvcBase
 {
@@ -39,8 +39,8 @@ class RawDataInputSvc : public SvcBase
       uint32_t          m_offset;
       uint32_t          m_buffsize;
       uint32_t          m_currbuffsize;
-      std::ifstream     m_filestream;     
       bool              m_isLastSegment;
+      InputStream*      m_iStream;
       //std::vector<std::string> m_inputFile;
 
 };

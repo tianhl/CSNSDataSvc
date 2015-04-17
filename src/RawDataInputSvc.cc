@@ -1,6 +1,7 @@
 #include "DataSvc/RawDataInputSvc.h"
 #include "DataSvc/DataSvc.h"
 #include "DataSvc/BeginEvtHdl.h"
+#include "DataSvc/InputStream.h"
 
 #include "SniperKernel/Incident.h"
 #include "SniperKernel/SniperPtr.h"
@@ -22,6 +23,7 @@
 #include "Data/Pulse.h"
 #include "Data/Event.h"
 #include "Data/RawData.h"
+
 
 DECLARE_SERVICE(RawDataInputSvc);
 
@@ -49,8 +51,10 @@ bool RawDataInputSvc::initialize()
 	if ( pSvc.invalid()) throw SniperException("DataSvc is invalid!");
 	m_dataSvc = pSvc.data();
 
-	m_filestream.open(m_inputFile.c_str(), std::ios::binary);
 	m_dataBuff = new uint64_t[m_buffsize];
+
+	m_iStream = new InputStream();
+	m_iStream->open(m_inputFile);
 
 	return true;
 }
@@ -59,7 +63,7 @@ bool RawDataInputSvc::initialize()
 
 bool RawDataInputSvc::finalize()
 {
-	m_filestream.close();
+	m_iStream->close();
 	return true;
 }
 
@@ -75,7 +79,6 @@ bool RawDataInputSvc::next()
 	uint32_t type, module, subsecond;
 
 	ReadRawData = read64bits();
-        //if(((*ReadRawData)>>56)==0x0)  {
 	if(isPulseHeader(ReadRawData))  {
 		decodePulseHeader(ReadRawData, &type, &module, &subsecond);
 		decodePulseTime(read64bits(), &second);
@@ -84,7 +87,6 @@ bool RawDataInputSvc::next()
 
 	while(true){
 		ReadRawData = read64bits();
-		//if (((*ReadRawData)>>56) == 0xFF)   {
 		if (isPulseTail(ReadRawData))   {
 			if(m_isLastSegment && (m_offset == m_currbuffsize)) return false;
 			break;
@@ -100,10 +102,10 @@ bool RawDataInputSvc::next()
 
 size_t RawDataInputSvc::nextSegment()
 {
-	m_filestream.read((char*)m_dataBuff, sizeof(uint64_t)*m_buffsize);
+        m_iStream->read(m_dataBuff, m_buffsize);
 	m_offset = 0;
 
-	size_t size = m_filestream.gcount()/sizeof(uint64_t);
+	size_t size = m_iStream->count();
 	if(size < m_buffsize) m_isLastSegment = true;
 	return size;
 }
