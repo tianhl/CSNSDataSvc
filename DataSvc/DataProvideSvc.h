@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <vector>
 #include <fstream>
 #include <stdint.h>
 #include <stdio.h>
@@ -15,16 +16,20 @@ class DataProvideSvc : public SvcBase{
 		DataProvideSvc(const std::string& name);
 		virtual ~DataProvideSvc();
 
-		bool initialize();
-		bool finalize();
-		void open(const std::string& filename);
-		void open();
-		void close();
-		void read(uint64_t* buff, uint32_t size);
+		bool   initialize();
+		bool   finalize();
+		bool   read(uint64_t* buff, uint32_t size);
 		size_t count() const;
 	private:
-		std::ifstream     m_filestream;     
-		std::string       m_inputFile;
+		void open();
+		void close();
+		bool next();
+		void open(const std::string& filename);
+	private:
+		std::ifstream               m_filestream;     
+		std::vector<std::string>    m_inputFiles;
+		uint32_t                    m_offset;
+		uint32_t                    m_nFiles;
 };
 
 #endif

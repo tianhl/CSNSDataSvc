@@ -57,7 +57,7 @@ bool RawDataInputSvc::initialize()
 	if ( pPSvc.invalid()) throw SniperException("DataProvideSvc is invalid!");
 	m_dataPvdSvc = pPSvc.data();
 
-	m_dataPvdSvc->open();
+	//m_dataPvdSvc->open();
 
 	return true;
 }
@@ -107,10 +107,7 @@ uint64_t* RawDataInputSvc::read64bits(){
 
 size_t RawDataInputSvc::nextSegment()
 {
-        m_dataPvdSvc->read(m_dataBuff, m_buffsize);
 	m_offset = 0;
-
-	size_t size = m_dataPvdSvc->count();
-	if(size < m_buffsize) m_isLastSegment = true;
-	return size;
+        if (not m_dataPvdSvc->read(m_dataBuff, m_buffsize)) m_isLastSegment = true;
+	return m_dataPvdSvc->count();
 }
