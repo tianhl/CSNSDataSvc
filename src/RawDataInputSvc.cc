@@ -2,6 +2,7 @@
 #include "DataSvc/DataSvc.h"
 #include "DataSvc/BeginEvtHdl.h"
 #include "DataSvc/InputStream.h"
+#include "DataSvc/DecodeRawData.h"
 
 #include "SniperKernel/Incident.h"
 #include "SniperKernel/SniperPtr.h"
@@ -79,26 +80,24 @@ bool RawDataInputSvc::next()
 	uint32_t type, module, subsecond;
 
 	ReadRawData = read64bits();
-	if(isPulseHeader(ReadRawData))  {
-		decodePulseHeader(ReadRawData, &type, &module, &subsecond);
-		decodePulseTime(read64bits(), &second);
+	if(DecodeRawData::isPulseHeader(ReadRawData))  {
+		DecodeRawData::decodePulseHeader(ReadRawData, &type, &module, &subsecond);
+		DecodeRawData::decodePulseTime(read64bits(), &second);
 	}
 	else throw SniperException("Pulse Header NOT FOUND!");
 
 	while(true){
 		ReadRawData = read64bits();
-		if (isPulseTail(ReadRawData))   {
+		if (DecodeRawData::isPulseTail(ReadRawData))   {
 			if(m_isLastSegment && (m_offset == m_currbuffsize)) return false;
 			break;
 		}
 		uint32_t psd, tof, qa, qb;
-		decodeEvent(ReadRawData, &psd, &tof, &qa, &qb);
+		DecodeRawData::decodeEvent(ReadRawData, &psd, &tof, &qa, &qb);
 	}
 	return true;
 
 }
-
-
 
 size_t RawDataInputSvc::nextSegment()
 {
@@ -109,29 +108,3 @@ size_t RawDataInputSvc::nextSegment()
 	if(size < m_buffsize) m_isLastSegment = true;
 	return size;
 }
-
-bool RawDataInputSvc::isPulseHeader(uint64_t *buff){
-	return 0x0  == (*buff>>56);
-}
-
-bool RawDataInputSvc::isPulseTail(uint64_t *buff){
-	return 0xFF == (*buff>>56);
-}
-
-void RawDataInputSvc::decodePulseHeader(uint64_t *buff, uint32_t *type, uint32_t *module, uint32_t *subsecond ){
-	*type      = (uint32_t) (((*buff)>>48)&0xFF);
-	*module    = (uint32_t) (((*buff)>>32)&0xFF); 
-	*subsecond = (uint32_t) ((*buff)&0xFFFFFFFF);
-}
-
-void RawDataInputSvc::decodePulseTime(uint64_t *buff, time_t *second ){
-	*second = (time_t) (* buff); 
-}
-
-void RawDataInputSvc::decodeEvent(uint64_t *buff, uint32_t *psd, uint32_t *tof, uint32_t *qa, uint32_t *qb ){
-	*psd = (uint32_t) (((*buff) >> 56 ) & 0xFF);
-	*tof = (uint32_t) (((*buff) >> 28 ) & 0xFFFFFFF);
-	*qa  = (uint32_t) (((*buff) >> 14 ) & 0x3FFF);
-	*qb  = (uint32_t) (( *buff) & 0x3FFF);
-}
-
