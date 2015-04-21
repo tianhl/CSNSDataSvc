@@ -66,7 +66,6 @@ bool RawDataInputSvc::initialize()
 
 bool RawDataInputSvc::finalize()
 {
-	m_dataPvdSvc->close();
 	return true;
 }
 
