@@ -41,6 +41,7 @@ void DataProvideSvc::open(){
 
 void DataProvideSvc::open(const std::string& name){
 	m_filestream.open(name.c_str(), std::ios::binary);
+	if(!m_filestream.is_open()) throw SniperException("Can not open file " + name);
 }
 
 void DataProvideSvc::close(){
