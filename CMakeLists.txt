@@ -7,7 +7,7 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF()
 
 # Find Package
-SET(CMAKE_MODULE_PATH /home/tianhl/workarea/Codes/sniper/CMake/Modules)
+SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../CMake/Modules)
 
 FIND_PACKAGE(SniperKernel REQUIRED)
 FIND_PACKAGE(Data REQUIRED)
