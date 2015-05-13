@@ -13,6 +13,7 @@
 #include <boost/thread/mutex.hpp>
 
 
+#include "dim.hxx"
 
 DECLARE_SERVICE(DimRecvSvc);
 
