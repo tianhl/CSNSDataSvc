@@ -12,6 +12,8 @@
 #include "SniperKernel/SvcBase.h"
 
 #include <queue>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread/thread.hpp>
 
 class DimRecvSvc : public SvcBase{
 	public:
@@ -20,7 +22,7 @@ class DimRecvSvc : public SvcBase{
 
 		bool   initialize();
 		bool   finalize();
-		bool   read(uint64_t* buff, uint32_t size);
+		bool   read(uint64_t* buff, size_t size);
 		size_t count() const;
 	private:
 		// thread
@@ -28,11 +30,14 @@ class DimRecvSvc : public SvcBase{
 		void pushDataItem(uint64_t* item, size_t size);
 		// main
 		void popDataItem();
+		bool copyBuff(uint64_t* destBuff, size_t size, uint64_t* srcBuff);
 	private:
-		uint16_t m_dataSize;
+		size_t m_dataSize;
+		size_t m_buffSize;
 		std::queue<uint64_t*> dataQueue;
-		uint32_t m_offset;
+		size_t m_offset;
 		uint64_t* m_current;
+		boost::thread *m_client;
 
 
 };
