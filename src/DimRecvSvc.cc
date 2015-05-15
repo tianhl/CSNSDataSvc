@@ -8,16 +8,11 @@
 #include "SniperKernel/SvcFactory.h"
 #include "SniperKernel/Task.h"
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
-
-
 #include "dim.hxx"
 
 DECLARE_SERVICE(DimRecvSvc);
 
 
-boost::mutex i_mutex;
 //=========================================================
 DimRecvSvc::DimRecvSvc(const std::string& name)
 : SvcBase(name)
@@ -85,10 +80,7 @@ void DimRecvSvc::dimClient(){
 void DimRecvSvc::pushDataItem(uint64_t* item, size_t size){
 	uint64_t* dataItem = new uint64_t[m_dataSize];
 	memcpy(dataItem, item, size);
-	{
-		boost::lock_guard<boost::mutex> lock(i_mutex);
-		dataQueue.push(dataItem);
-	}
+	dataQueue.put(dataItem);
 }
 
 //=========================================================
@@ -96,11 +88,7 @@ void DimRecvSvc::pushDataItem(uint64_t* item, size_t size){
 //========================================================
 
 void DimRecvSvc::popDataItem(){
-	{
-		boost::lock_guard<boost::mutex> lock(i_mutex);
-		m_current = dataQueue.front();
-		dataQueue.pop();
-	}
+	m_current = dataQueue.get();
 	m_offset = 0;
 }
 
