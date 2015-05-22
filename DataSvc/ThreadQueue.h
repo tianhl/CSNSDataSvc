@@ -20,6 +20,7 @@ class ThreadQueue
 
 		T get() {
 			boost::unique_lock<boost::mutex> lock(mutex_); 
+			//while(queue_size()== 0) cond_.wait(lock);
 			if (queue_.size() == 0) cond_.wait(lock);
 			T front(queue_.front());
 			queue_.pop();

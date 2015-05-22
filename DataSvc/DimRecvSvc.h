@@ -27,14 +27,15 @@ class DimRecvSvc : public SvcBase{
 	private:
 		// thread
 		void dimClient();
-		void pushDataItem(uint64_t* item, size_t size);
+		static void pushDataItem(uint64_t* item, size_t size);
+		friend void functionWrapper(void* tag, void* item, int* size);
 		// main
 		void popDataItem();
 		bool copyBuff(uint64_t* destBuff, size_t size, uint64_t* srcBuff);
 	private:
 		size_t m_dataSize;
 		size_t m_buffSize;
-		ThreadQueue<uint64_t*> dataQueue;
+		static ThreadQueue<uint64_t*> dataQueue;
 		size_t m_offset;
 		uint64_t* m_current;
 		boost::thread *m_client;

@@ -8,7 +8,9 @@
 #include "SniperKernel/SvcFactory.h"
 #include "SniperKernel/Task.h"
 
-#include "dim.hxx"
+#include "dic.h"
+
+int flag = 0;
 
 DECLARE_SERVICE(DimRecvSvc);
 
@@ -32,7 +34,8 @@ bool DimRecvSvc::initialize(){
 bool DimRecvSvc::finalize()
 {
 	// need process all the data item in the queue
-	m_client->interrupt();
+        flag = 1;
+	//m_client->interrupt();
 	return true;
 }
 
@@ -60,27 +63,34 @@ size_t DimRecvSvc::count() const{
 	return m_buffSize;
 }
 
-bool DimRecvSvc::copyBuff(uint64_t* destBuff, size_t size, uint64_t* srcBuff){
-	memcpy(destBuff, srcBuff, size);
-	m_offset += size;
-	return true;
-}
-
-
 //=========================================================
 //private method: thread
 //========================================================
-void DimRecvSvc::dimClient(){
-	for(int i = 0; i < 10; i++){
-		uint64_t* item = new uint64_t[m_dataSize];
-		pushDataItem(item, sizeof(uint64_t)*m_dataSize);
-	}
+void DimRecvSvc::pushDataItem(uint64_t* item, size_t size)
+{
+	uint64_t* dataItem = new uint64_t[size];
+	memcpy(dataItem, (uint64_t*)item, size);
+	dataQueue.put(dataItem);
 }
 
-void DimRecvSvc::pushDataItem(uint64_t* item, size_t size){
-	uint64_t* dataItem = new uint64_t[m_dataSize];
-	memcpy(dataItem, item, size);
-	dataQueue.put(dataItem);
+
+void functionWrapper(void* flag, void* buff, int* size){
+	if(1200 == *((int*)flag)) DimRecvSvc::pushDataItem((uint64_t*)buff, size_t(*size));
+}
+
+void DimRecvSvc::dimClient(){
+
+	char aux[80];
+	int id;
+	int no_link = -1;
+	sprintf(aux,"%s","dimserver/TEST_SWAP");
+	id = dic_info_service_stamped( aux, MONITORED, 0, 0, 0, functionWrapper, 1200,
+			&no_link, 4 );                      //创建接收service的功能模块
+
+	while(flag !=1)
+	{
+	}
+	dic_release_service(id);
 }
 
 //=========================================================
@@ -92,3 +102,8 @@ void DimRecvSvc::popDataItem(){
 	m_offset = 0;
 }
 
+bool DimRecvSvc::copyBuff(uint64_t* destBuff, size_t size, uint64_t* srcBuff){
+	memcpy(destBuff, srcBuff, size);
+	m_offset += size;
+	return true;
+}
