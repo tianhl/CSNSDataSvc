@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 #include "SniperKernel/SvcBase.h"
-#include "DataSvc/ThreadQueue.h"
+#include "DataSvc/DynamicThreadedQueue.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/thread.hpp>
@@ -35,12 +35,11 @@ class DimRecvSvc : public SvcBase{
 	private:
 		size_t m_dataSize;
 		size_t m_buffSize;
-		static ThreadQueue<uint64_t*> dataQueue;
+		static DynamicThreadedQueue<uint64_t*> dataQueue;
 		size_t m_offset;
 		uint64_t* m_current;
 		boost::thread *m_client;
 		int    m_dimID;
-
 
 };
 

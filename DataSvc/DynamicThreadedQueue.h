@@ -1,16 +1,16 @@
-#ifndef THREAD_QUEUE_h 
-#define THREAD_QUEUE_h 
+#ifndef DYNAMIC_THREADED_QUEUE_h 
+#define DYNAMIC_THREADED_QUEUE_h 
 #include <boost/thread.hpp>
 #include <boost/noncopyable.hpp>
 #include <queue>
 
 template<typename T>
-class ThreadQueue
+class DynamicThreadedQueue
 :boost::noncopyable
 {
 	public:
-		ThreadQueue() : queue_(), cond_(), mutex_() {}
-		~ThreadQueue(){}
+		DynamicThreadedQueue() : queue_(), cond_(), mutex_() {}
+		~DynamicThreadedQueue(){}
 
 		void put(const T& obj) {
 			boost::unique_lock<boost::mutex> lock(mutex_); 
@@ -20,8 +20,8 @@ class ThreadQueue
 
 		T get() {
 			boost::unique_lock<boost::mutex> lock(mutex_); 
-			//while(queue_size()== 0) cond_.wait(lock);
-			if (queue_.size() == 0) cond_.wait(lock);
+			while(queue_.size()== 0) cond_.wait(lock);
+			//if (queue_.size() == 0) cond_.wait(lock);
 			T front(queue_.front());
 			queue_.pop();
 			return front;
