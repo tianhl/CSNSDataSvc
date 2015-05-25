@@ -39,6 +39,7 @@ class DimRecvSvc : public SvcBase{
 		size_t m_offset;
 		uint64_t* m_current;
 		boost::thread *m_client;
+		int    m_dimID;
 
 
 };

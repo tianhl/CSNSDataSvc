@@ -13,7 +13,7 @@
 
 DECLARE_SERVICE(DimRecvSvc);
 
-int flag = 0;
+//int flag = 0;
 ThreadQueue<uint64_t*> DimRecvSvc::dataQueue;
 
 
@@ -36,8 +36,8 @@ bool DimRecvSvc::initialize(){
 bool DimRecvSvc::finalize()
 {
 	// need process all the data item in the queue
-        flag = 1;
-	//m_client->interrupt();
+	dic_release_service(m_dimID);
+	m_client->interrupt();
 	return true;
 }
 
@@ -89,17 +89,10 @@ void functionWrapper(void* flag, void* buff, int* size){
 void DimRecvSvc::dimClient(){
 
 	char aux[80];
-	int id;
 	int no_link = -1;
 	sprintf(aux,"%s","dimserver/TEST_SWAP");
-	id = dic_info_service_stamped( aux, MONITORED, 0, 0, 0, functionWrapper, 1200,
+	m_dimID = dic_info_service_stamped( aux, MONITORED, 0, 0, 0, functionWrapper, 1200,
 			&no_link, 4 );                      //创建接收service的功能模块
-
-	//while(flag !=1)
-	while(true)
-	{
-	}
-	//dic_release_service(id);
 }
 
 //=========================================================
