@@ -61,6 +61,7 @@ add_library(DataSvc SHARED ${CPPLIB_SRC_LIST})
 target_link_libraries(DataSvc ${Boost_LIBRARIES}) 
 TARGET_LINK_LIBRARIES(DataSvc ${SniperKernel_LIBRARIES})
 TARGET_LINK_LIBRARIES(DataSvc ${Data_LIBRARIES})
+TARGET_LINK_LIBRARIES(DataSvc ${Dim_LIBRARIES})
 
 # Output Path and Install Area
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)

@@ -10,9 +10,11 @@
 
 #include "dic.h"
 
-int flag = 0;
 
 DECLARE_SERVICE(DimRecvSvc);
+
+int flag = 0;
+ThreadQueue<uint64_t*> DimRecvSvc::dataQueue;
 
 
 //=========================================================
@@ -75,7 +77,13 @@ void DimRecvSvc::pushDataItem(uint64_t* item, size_t size)
 
 
 void functionWrapper(void* flag, void* buff, int* size){
-	if(1200 == *((int*)flag)) DimRecvSvc::pushDataItem((uint64_t*)buff, size_t(*size));
+	//if(1200 == *((int*)flag)) DimRecvSvc::pushDataItem((uint64_t*)buff, size_t(*size));
+        int t= 0;
+	if(1200 == *((int*)flag)) {
+		DimRecvSvc::pushDataItem((uint64_t*)buff, size_t(*size));
+                memcpy(&t,buff,4); 
+                printf("data: %d\n", t);
+	}
 }
 
 void DimRecvSvc::dimClient(){
@@ -87,10 +95,11 @@ void DimRecvSvc::dimClient(){
 	id = dic_info_service_stamped( aux, MONITORED, 0, 0, 0, functionWrapper, 1200,
 			&no_link, 4 );                      //创建接收service的功能模块
 
-	while(flag !=1)
+	//while(flag !=1)
+	while(true)
 	{
 	}
-	dic_release_service(id);
+	//dic_release_service(id);
 }
 
 //=========================================================
