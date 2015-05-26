@@ -11,9 +11,24 @@
 
 #include "SniperKernel/SvcBase.h"
 #include "DataSvc/DynamicThreadedQueue.h"
+#include "DataSvc/DynamicSingleton.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/thread.hpp>
+
+class DataItem{
+	public:
+		DataItem(uint64_t* p, size_t s):m_pData(p),m_size(s){};
+		virtual ~DataItem(){};
+
+		uint64_t* getData(){return m_pData;};
+		size_t    getSize(){return m_size;};
+	private:
+		DataItem(){};
+		// set const?
+		uint64_t* m_pData;
+		size_t    m_size;
+};
 
 class DimRecvSvc : public SvcBase{
 	public:
@@ -30,17 +45,22 @@ class DimRecvSvc : public SvcBase{
 		static void pushDataItem(uint64_t* item, size_t size);
 		friend void functionWrapper(void* tag, void* item, int* size);
 		// main
+		bool eraseDataItem();
 		void popDataItem();
 		bool copyBuff(uint64_t* destBuff, size_t size, uint64_t* srcBuff);
 	private:
-		size_t m_dataSize;
-		size_t m_buffSize;
-		static DynamicThreadedQueue<uint64_t*> dataQueue;
-		size_t m_offset;
+		static DynamicThreadedQueue<DataItem*> dataQueue;
+		DataItem* m_curDataItem;
 		uint64_t* m_current;
+		size_t m_dataSize; // to upper
+		size_t m_currSize;
+		size_t m_offset;   // dimbuff offset
 		boost::thread *m_client;
 		int    m_dimID;
 
 };
+
+// set singleton?
+typedef DynamicSingleton<DimRecvSvc> DAQInputSvc;
 
 #endif

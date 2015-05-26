@@ -8,7 +8,7 @@
 #include <iostream>
 /// class to manage an instance of an object as a singleton
 template <typename T>
-class DynamicSingletion
+class DynamicSingleton
 {
   public:
     static T* ptr();
@@ -16,7 +16,7 @@ class DynamicSingletion
 
   private:
     static void DestroySingleton();
-    DynamicSingletion();
+    DynamicSingleton();
 
     static T* pInstance;
 };
@@ -29,27 +29,27 @@ struct CreateUsingNew
 };
 
 template <typename T>
-inline T* DynamicSingletion<T>::ptr()
+inline T* DynamicSingleton<T>::ptr()
 {
   if (!pInstance) pInstance = CreateUsingNew<T>::Create();
   return pInstance;
 };
 
 template <typename T>
-inline T& DynamicSingletion<T>::instance()
+inline T& DynamicSingleton<T>::instance()
 {
   if (!pInstance) pInstance = CreateUsingNew<T>::Create();
   return *pInstance;
 };
 
 template <typename T>
-void DynamicSingletion<T>::DestroySingleton()
+void DynamicSingleton<T>::DestroySingleton()
 {
   CreateUsingNew<T>::Destroy(pInstance);
   pInstance = 0;
 }
 
 template <typename T>
-T* DynamicSingletion<T>::pInstance = 0;
+T* DynamicSingleton<T>::pInstance = 0;
 
 #endif

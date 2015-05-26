@@ -13,13 +13,20 @@
 
 DECLARE_SERVICE(DimRecvSvc);
 
-DynamicThreadedQueue<uint64_t*> DimRecvSvc::dataQueue;
+DynamicThreadedQueue<DataItem*> DimRecvSvc::dataQueue;
 
 //=========================================================
 DimRecvSvc::DimRecvSvc(const std::string& name)
 : SvcBase(name)
 {
 	declProp("DataSize", m_dataSize);
+
+	m_client = NULL;
+	m_curDataItem = NULL;
+	m_current = NULL;
+	m_currSize = 0;
+	m_offset = 0;
+	m_dimID = -1;
 }
 
 DimRecvSvc::~DimRecvSvc(){
@@ -31,56 +38,69 @@ bool DimRecvSvc::initialize(){
 	return true;
 }
 
-bool DimRecvSvc::finalize()
-{
+bool DimRecvSvc::finalize() {
 	// need process all the data item in the queue
-	dic_release_service(m_dimID);
-	m_client->interrupt();
+	if(m_dimID != -1)dic_release_service(m_dimID);
+	if(m_client)m_client->interrupt();
 	return true;
 }
 
+bool DimRecvSvc::eraseDataItem(){
+	if(not m_curDataItem) return false;
+	delete []m_curDataItem->getData();
+	delete m_curDataItem;
+	m_curDataItem = NULL;
+	return true;
+}
 
 bool DimRecvSvc::read(uint64_t* buff, size_t buffsize){
-	// buffsize << m_dataSize  !!!!!!
-	m_buffSize = buffsize;
-	if(m_buffSize < m_dataSize) throw SniperException("buffsize needs smaller than datasize! ");
+	uint64_t* currBuff = buff;
+	size_t    needsize = buffsize;
+	size_t    m_currSize = 0;
 
-	if((m_offset+buffsize)>m_dataSize){
-		size_t length = m_dataSize - m_offset;
-		copyBuff(buff, length, m_current+m_offset);
-		delete[] m_current;
-		popDataItem();
-		copyBuff(buff+length, buffsize-length, m_current);
-	}
-	else{
-		copyBuff(buff, buffsize, m_current+m_offset);
+	while(needsize>0){
+		size_t length = m_curDataItem->getSize()-m_offset;
+		if(length == 0) {
+			if(not eraseDataItem()) return false;
+			popDataItem();
+			if(m_curDataItem)length = m_curDataItem->getSize();
+			else return false;
+		}
+		size_t cpsize = (needsize < length)?needsize:length;
+		if(copyBuff(currBuff, cpsize, m_current+m_offset)){
+			m_offset   += cpsize;
+			currBuff   += cpsize;
+			m_currSize += cpsize;
+			needsize   -= cpsize;
+		}
+		else return false;
 	}
 
 	return true;
 }
 
 size_t DimRecvSvc::count() const{
-	return m_buffSize;
+	return m_currSize;
 }
 
 //=========================================================
 //private method: thread
 //========================================================
-void DimRecvSvc::pushDataItem(uint64_t* item, size_t size)
-{
-	uint64_t* dataItem = new uint64_t[size];
-	memcpy(dataItem, (uint64_t*)item, size);
+void DimRecvSvc::pushDataItem(uint64_t* item, size_t size) {
+	uint64_t* data = new uint64_t[size];
+	memcpy(data, (uint64_t*)item, size);
+	DataItem* dataItem = new DataItem(data, size);
 	dataQueue.put(dataItem);
 }
 
 
 void functionWrapper(void* flag, void* buff, int* size){
 	//if(1200 == *((int*)flag)) DimRecvSvc::pushDataItem((uint64_t*)buff, size_t(*size));
-        int t= 0;
+	int t= 0;
 	if(1200 == *((int*)flag)) {
 		DimRecvSvc::pushDataItem((uint64_t*)buff, size_t(*size));
-                memcpy(&t,buff,4); 
-                printf("data: %d\n", t);
+		memcpy(&t,buff,4); 
+		printf("data: %d\n", t);
 	}
 }
 
@@ -95,7 +115,7 @@ void DimRecvSvc::dimClient(){
 //========================================================
 
 void DimRecvSvc::popDataItem(){
-	m_current = dataQueue.get();
+	m_curDataItem = dataQueue.get();
 	m_offset = 0;
 }
 
