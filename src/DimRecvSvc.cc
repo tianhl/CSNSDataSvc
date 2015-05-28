@@ -63,6 +63,8 @@ bool DimRecvSvc::read(uint64_t* buff, size_t buffsize){
 	while(needsize>0){
 		size_t length = m_curDataItem->getSize()-m_offset;
 		if(0 == length) {
+			// if m_currSize > 0 return NULL
+			// if m_currSize == 0 block @ Queue
 			if(eraseDataItem()) popDataItem();
 			else return false;
 			if(m_curDataItem)length = m_curDataItem->getSize();
