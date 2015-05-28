@@ -8,7 +8,9 @@
 #include "SniperKernel/SvcFactory.h"
 #include "SniperKernel/Task.h"
 
+extern "C"{
 #include "dic.h"
+}
 
 
 DECLARE_SERVICE(DimRecvSvc);
@@ -40,8 +42,8 @@ bool DimRecvSvc::initialize(){
 
 bool DimRecvSvc::finalize() {
 	// need process all the data item in the queue
-	if(m_dimID != -1)dic_release_service(m_dimID);
-	if(m_client)m_client->interrupt();
+	if(-1 != m_dimID)dic_release_service(m_dimID);
+	if(m_client) m_client->interrupt();
 	return true;
 }
 
@@ -60,9 +62,9 @@ bool DimRecvSvc::read(uint64_t* buff, size_t buffsize){
 
 	while(needsize>0){
 		size_t length = m_curDataItem->getSize()-m_offset;
-		if(length == 0) {
-			if(not eraseDataItem()) return false;
-			popDataItem();
+		if(0 == length) {
+			if(eraseDataItem()) popDataItem();
+			else return false;
 			if(m_curDataItem)length = m_curDataItem->getSize();
 			else return false;
 		}
@@ -105,9 +107,10 @@ void functionWrapper(void* flag, void* buff, int* size){
 }
 
 void DimRecvSvc::dimClient(){
-	int no_link = -1;
-	std::string aux("dimserver/TEST_SWAP");
-	m_dimID = dic_info_service_stamped( aux.c_str(), MONITORED, 0, 0, 0, functionWrapper, 1200, &no_link, 4 );  
+	static int no_link = -1;
+	static char aux[80];
+	sprintf(aux,"%s","dimserver/TEST_SWAP");
+	m_dimID = dic_info_service_stamped( aux, MONITORED, 0, 0, 0, functionWrapper, 1200, &no_link, 4 );  
 }
 
 //=========================================================

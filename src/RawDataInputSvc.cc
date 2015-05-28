@@ -29,8 +29,7 @@
 DECLARE_SERVICE(RawDataInputSvc);
 
 RawDataInputSvc::RawDataInputSvc(const std::string& name)
-: SvcBase(name) 
-{
+: SvcBase(name) {
 	declProp("BuffSize",  m_buffsize);
 
 	m_isLastSegment = false;
@@ -38,12 +37,10 @@ RawDataInputSvc::RawDataInputSvc(const std::string& name)
 	m_currbuffsize = 0;
 }
 
-RawDataInputSvc::~RawDataInputSvc()
-{
+RawDataInputSvc::~RawDataInputSvc() {
 }
 
-bool RawDataInputSvc::initialize()
-{
+bool RawDataInputSvc::initialize() {
 
 	LogInfo << "InputSvc initialize " << std::endl;
 
@@ -64,13 +61,11 @@ bool RawDataInputSvc::initialize()
 
 
 
-bool RawDataInputSvc::finalize()
-{
+bool RawDataInputSvc::finalize() {
 	return true;
 }
 
-bool RawDataInputSvc::next()
-{
+bool RawDataInputSvc::next() {
 	uint64_t *ReadRawData;
 	time_t second;
 	uint32_t type, module, subsecond;
@@ -104,8 +99,7 @@ uint64_t* RawDataInputSvc::read64bits(){
 	return (uint64_t*)(m_dataBuff+(m_offset++));
 }
 
-size_t RawDataInputSvc::nextSegment()
-{
+size_t RawDataInputSvc::nextSegment() {
 	m_offset = 0;
         if (not m_dataPvdSvc->read(m_dataBuff, m_buffsize)) m_isLastSegment = true;
 	return m_dataPvdSvc->count();
