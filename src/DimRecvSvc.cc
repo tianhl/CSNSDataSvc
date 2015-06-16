@@ -7,6 +7,7 @@
 #include "SniperKernel/SniperException.h"
 #include "SniperKernel/SvcFactory.h"
 #include "SniperKernel/Task.h"
+#include<cstdlib>
 
 extern "C"{
 #include "dic.h"
@@ -42,6 +43,7 @@ bool DimRecvSvc::initialize(){
 
 bool DimRecvSvc::finalize() {
 	// need process all the data item in the queue
+	LogInfo << "DimRecvSvc finalize" << std::endl;
 	if(-1 != m_dimID)dic_release_service(m_dimID);
 	if(m_client) m_client->interrupt();
 	return true;
@@ -63,7 +65,7 @@ bool DimRecvSvc::read(uint64_t* buff, size_t buffsize){
 	while(needsize>0){
 		size_t length = m_curDataItem->getSize()-m_offset;
 		if(0 == length) {
-			// if m_currSize > 0 return NULL
+			// if m_currSize > 0 return NULL, continue the process
 			// if m_currSize == 0 block @ Queue
 			if(eraseDataItem()) popDataItem();
 			else return false;
@@ -109,10 +111,17 @@ void functionWrapper(void* flag, void* buff, int* size){
 }
 
 void DimRecvSvc::dimClient(){
-	static int no_link = -1;
-	static char aux[80];
-	sprintf(aux,"%s","dimserver/TEST_SWAP");
-	m_dimID = dic_info_service_stamped( aux, MONITORED, 0, 0, 0, functionWrapper, 1200, &no_link, 4 );  
+	char* envNode = getenv("DIM_DNS_NODE");
+	char* envPort = getenv("DIM_DNS_PORT");
+	if(envNode and envPort) {
+		LogInfo << "DIM_DNS_NODE: " << envNode << std::endl; 
+		LogInfo << "DIM_DNS_PORT: " << envPort << std::endl; 
+		static int no_link = -1;
+		static char aux[80];
+		sprintf(aux,"%s","dimserver/TEST_SWAP");
+		m_dimID = dic_info_service_stamped( aux, MONITORED, 0, 0, 0, functionWrapper, 1200, &no_link, 4 );  
+	}
+	else throw SniperException("DIM_DNS_NODE or DIM_DNS_PORT undefined!");
 }
 
 //=========================================================
@@ -120,6 +129,9 @@ void DimRecvSvc::dimClient(){
 //========================================================
 
 void DimRecvSvc::popDataItem(){
+	//bool block = (0 == m_currSize)?true:false;
+	//m_curDataItem = dataQueue.get(block);
+	//m_offset = 0;
 	m_curDataItem = dataQueue.get();
 	m_offset = 0;
 }

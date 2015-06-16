@@ -26,6 +26,17 @@ class DynamicThreadedQueue
 			return front;
 		}
 
+		//T get(bool block = true) {
+		//	boost::unique_lock<boost::mutex> lock(mutex_); 
+		//	if(block) {
+		//		while(queue_.size()== 0) cond_.wait(lock);
+		//	}
+		//	else if(0 == queie_.size()) return NULL; 
+		//	T front(queue_.front());
+		//	queue_.pop();
+		//	return front;
+		//}
+
 		unsigned size() { return queue_.size(); }
 
 		void notify_all() { cond_.notify_all(); }
